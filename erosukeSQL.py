@@ -20,34 +20,37 @@ header = {
         }
 
 
-def erosukeSQL(sql_pass):
+def erosukeSQL(sql_path):
     try:
-        with open(sql_pass, encoding="utf-8") as sql_file:
+        with open(sql_path, encoding="utf-8") as sql_file:
             sql_statement = sql_file.read()
     except:
         print('パスが間違ってるかUTF-8N(BOM無し)でエンコードされてないため，SQLファイルが読み込めません')
         sys.exit()        
 
     response = requests.post(url, data={'sql': sql_statement}, params=header)
-    print("Status:" + str(response.status_code)) #HTTPのステータスコード取得
+    #print("Status:" + str(response.status_code)) #HTTPのステータスコード取得
 
     soup = BeautifulSoup(response.text, "html.parser")
     #print(soup)
     query_result = soup.find('div', id="query_result")
 
     query_result_header = query_result.find('div', id="query_result_header").text
-    print(query_result_header)
+    #print(query_result_header)
 
     if("エラー" in query_result_header):
+        print(query_result_header)
         query_result_main = query_result.find('div', id="query_result_main").text
         print(query_result_main)
+        sys.exit()
+
     else:
         table = query_result.find("table")
         #print(table)
 
         # CSVで保存
-        csv_pass = sql_pass.replace('.sql', '_result.csv')
-        with open(csv_pass, "w", newline="", encoding='utf-8-sig') as file:
+        csv_path = sql_path.replace('.sql', '_result.csv')
+        with open(csv_path, "w", newline="", encoding='utf-8-sig') as file:
             writer = csv.writer(file)
             rows = table.find_all("tr")
             for row in rows:
@@ -56,20 +59,21 @@ def erosukeSQL(sql_pass):
                     csvRow.append(cell.get_text())
                 writer.writerow(csvRow)
 
-        with open(csv_pass, encoding="utf-8") as csv_file:
-            print(csv_file.read())
+        return csv_path
 
 
 if __name__ == '__main__':
     args = sys.argv
     try:
-        sql_pass = args[1]
+        sql_path = args[1]
     except:
         print('SQLファイルを指定してください コマンド例> python erosukeSQL.py hoge.sql')
         sys.exit()
     else:
-        if(".sql" not in sql_pass):
+        if(".sql" not in sql_path):
             print('SQLファイルを指定してください コマンド例> python erosukeSQL.py hoge.sql')
             sys.exit()
 
-    erosukeSQL(sql_pass)
+    csv_path = erosukeSQL(sql_path)
+    with open(csv_path, encoding="utf-8") as csv_file:
+        print(csv_file.read())

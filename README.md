@@ -21,7 +21,7 @@ sql_path = "example/kyouen.sql"
 csv_path = erosukeSQL(sql_path) #実行
 ```
 
-## sqlファイル
+## SQLファイル
 UTF-8N(BOM無し)で保存したものを使ってね
 
 ## 注意
